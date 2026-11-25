@@ -226,7 +226,8 @@
         'sounds/kill7.mp3',
         'sounds/kill8.mp3',
         'sounds/kill9.mp3',
-        'sounds/kill10.mp3'
+        'sounds/kill10.mp3',
+        'sounds/kill11.mp3'
       ],
       bomb: 'sounds/bomb.mp3',
       gameOver: 'sounds/gameover.mp3'
@@ -862,6 +863,48 @@
     // ==========================================
     // 8. FAST BLIT DRAWING HELPERS
     // ==========================================
+    function drawCharacterFace(targetCtx, cx, cy, headR) {
+      targetCtx.save();
+      targetCtx.translate(cx, cy);
+
+      // Face base
+      targetCtx.fillStyle = '#f3d2b3';
+      targetCtx.strokeStyle = '#1e293b';
+      targetCtx.lineWidth = 2.2;
+      targetCtx.beginPath();
+      targetCtx.arc(0, 0, headR, 0, Math.PI * 2);
+      targetCtx.fill();
+      targetCtx.stroke();
+
+      // Silver-grey hair & beard accents
+      targetCtx.fillStyle = '#cbd5e1';
+      targetCtx.beginPath();
+      targetCtx.arc(0, -headR * 0.28, headR * 0.86, Math.PI * 1.08, Math.PI * 1.92);
+      targetCtx.fill();
+
+      // Beard lower contour
+      targetCtx.fillStyle = 'rgba(203, 213, 225, 0.72)';
+      targetCtx.beginPath();
+      targetCtx.arc(0, headR * 0.22, headR * 0.72, 0.15 * Math.PI, 0.85 * Math.PI);
+      targetCtx.fill();
+
+      // Expressive eyes
+      targetCtx.fillStyle = '#0f172a';
+      targetCtx.beginPath();
+      targetCtx.arc(-headR * 0.32, -headR * 0.08, Math.max(1.8, headR * 0.11), 0, Math.PI * 2);
+      targetCtx.arc(headR * 0.32, -headR * 0.08, Math.max(1.8, headR * 0.11), 0, Math.PI * 2);
+      targetCtx.fill();
+
+      // Friendly smile
+      targetCtx.strokeStyle = '#334155';
+      targetCtx.lineWidth = 1.8;
+      targetCtx.beginPath();
+      targetCtx.arc(0, headR * 0.22, headR * 0.34, 0.12 * Math.PI, 0.88 * Math.PI);
+      targetCtx.stroke();
+
+      targetCtx.restore();
+    }
+
     function drawNinjaCharacter(ent) {
       const sprite = getCachedNinjaSprite(ent.theme, ent.radius);
       ctx.save();
@@ -869,6 +912,7 @@
       ctx.rotate(ent.rotation);
       const half = sprite.logicalSize * 0.5;
       ctx.drawImage(sprite.canvas, -half, -half, sprite.logicalSize, sprite.logicalSize);
+      drawCharacterFace(ctx, 0, -ent.radius * 0.38, ent.radius * 0.36);
       ctx.restore();
     }
 
@@ -884,14 +928,7 @@
       ctx.lineCap = 'round';
 
       if (h.half === 'top') {
-        ctx.fillStyle = h.theme.body;
-        ctx.beginPath();
-        ctx.arc(0, -r * 0.25, r * 0.34, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = '#ef4444';
-        ctx.fillRect(-r * 0.34, -r * 0.38, r * 0.68, r * 0.12);
+        drawCharacterFace(ctx, 0, -r * 0.25, r * 0.34);
       } else {
         ctx.beginPath();
         ctx.moveTo(0, -r * 0.1);
