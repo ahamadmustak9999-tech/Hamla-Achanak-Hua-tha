@@ -215,20 +215,16 @@
     // ==========================================
     // 1. PRE-CONFIGURED AUDIO PATHS (`sounds/`)
     // ==========================================
+    // Add any extra kill mp3 filenames here (e.g. 'kill12.mp3', 'kill13.mp3', etc.)
+    const EXTRA_KILL_FILES = [
+      // 'kill12.mp3',
+    ];
+
+    const BASE_KILL_FILES = Array.from({ length: 11 }, (_, i) => `kill${i + 1}.mp3`);
+    const ALL_KILL_FILES = [...BASE_KILL_FILES, ...EXTRA_KILL_FILES];
+
     const AUDIO_PATHS = {
-      kills: [
-        'sounds/kill1.mp3',
-        'sounds/kill2.mp3',
-        'sounds/kill3.mp3',
-        'sounds/kill4.mp3',
-        'sounds/kill5.mp3',
-        'sounds/kill6.mp3',
-        'sounds/kill7.mp3',
-        'sounds/kill8.mp3',
-        'sounds/kill9.mp3',
-        'sounds/kill10.mp3',
-        'sounds/kill11.mp3'
-      ],
+      kills: ALL_KILL_FILES.map((file) => `sounds/${file}`),
       bomb: 'sounds/bomb.mp3',
       gameOver: 'sounds/gameover.mp3'
     };
