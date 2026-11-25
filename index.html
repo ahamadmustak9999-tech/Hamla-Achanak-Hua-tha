@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Pagal Ninja</title>
+  <title>Pagal Ninja - Swipe Arcade</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -18,250 +18,204 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background-color: #2d170b;
+      background-color: #160c07;
       font-family: 'Inter', sans-serif;
       color: #fff;
     }
 
-    #gameCanvas {
+    /* Dojo Wooden Wall Background */
+    .dojo-bg {
+      background:
+        radial-gradient(circle at 20% 25%, rgba(255, 115, 0, 0.16) 0%, transparent 40%),
+        radial-gradient(circle at 80% 25%, rgba(255, 115, 0, 0.16) 0%, transparent 40%),
+        repeating-linear-gradient(
+          90deg,
+          #24130a 0px,
+          #24130a 48px,
+          #1c0e07 49px,
+          #2b170c 52px
+        );
+    }
+
+    .title-font {
+      font-family: 'Bungee', cursive;
+      letter-spacing: 1px;
+    }
+
+    /* Floating Lantern Glow Animation */
+    @keyframes sway {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(-3deg); }
+      50% { transform: translate3d(0, 4px, 0) rotate(3deg); }
+    }
+
+    .lantern {
+      animation: sway 4s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    /* Screen Shake on Bomb Hit */
+    @keyframes screenShake {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      20% { transform: translate3d(-10px, 6px, 0); }
+      40% { transform: translate3d(10px, -6px, 0); }
+      60% { transform: translate3d(-8px, -4px, 0); }
+      80% { transform: translate3d(8px, 4px, 0); }
+    }
+
+    .shake {
+      animation: screenShake 0.35s ease-in-out;
+    }
+
+    /* Custom 3D Button Styling */
+    .btn-3d {
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .btn-3d:active {
+      transform: translateY(3px);
+    }
+
+    canvas {
       display: block;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    .arcade-title {
-      font-family: 'Bangers', cursive;
-      letter-spacing: 2px;
-    }
-
-    .gaali-toggle-btn {
-      transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease;
-    }
-
-    .gaali-toggle-btn:active {
-      transform: scale(0.95);
-    }
-
-    .gaali-on {
-      background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
-      box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
-      border: 1.5px solid rgba(255, 255, 255, 0.45);
-    }
-
-    .gaali-off {
-      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-      box-shadow: 0 0 18px rgba(14, 165, 233, 0.5);
-      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      width: 100%;
+      height: 100%;
+      will-change: transform;
+      transform: translateZ(0);
     }
   </style>
 </head>
-<body>
-  <canvas id="gameCanvas"></canvas>
+<body class="dojo-bg h-screen w-screen overflow-hidden relative">
 
-  <!-- Top HUD -->
-  <div class="pointer-events-none fixed top-0 left-0 right-0 z-20 flex items-center justify-between px-3.5 py-3 sm:px-6">
-    <!-- Score Box + Progress Stars -->
-    <div class="flex items-center gap-2.5 sm:gap-4">
-      <div class="rounded-xl border border-amber-500/35 bg-[#201007]/85 px-3 py-1.5 shadow-lg backdrop-blur-sm">
-        <div class="text-[9px] font-extrabold uppercase tracking-widest text-amber-300/80">SCORE</div>
-        <div id="scoreVal" class="text-xl font-black leading-none text-white sm:text-2xl">0</div>
-      </div>
-
-      <!-- Level Progress Bar with Stars -->
-      <div class="hidden items-center gap-1.5 sm:flex">
-        <div class="relative h-2.5 w-32 overflow-hidden rounded-full border border-amber-500/30 bg-black/50">
-          <div id="progressFill" class="h-full w-0 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-200"></div>
-        </div>
-        <span id="star1" class="text-xs opacity-35">⭐</span>
-        <span id="star2" class="text-xs opacity-35">⭐</span>
-      </div>
-    </div>
-
-    <!-- Hearts (Lives) -->
-    <div id="livesContainer" class="flex items-center gap-1 rounded-xl border border-rose-500/25 bg-[#201007]/85 px-3 py-1.5 text-lg shadow-lg backdrop-blur-sm sm:text-xl">
-      <span>❤️</span><span>❤️</span><span>❤️</span>
+  <!-- Decorative Dojo Lanterns -->
+  <div class="pointer-events-none fixed top-20 left-5 sm:left-14 z-0 opacity-85 lantern">
+    <div class="w-1 h-6 bg-amber-900 mx-auto"></div>
+    <div class="w-10 h-14 rounded-2xl bg-gradient-to-b from-amber-500 via-orange-600 to-red-700 shadow-[0_0_35px_rgba(255,110,0,0.65)] border border-amber-300/40 flex flex-col justify-around py-1.5">
+      <div class="h-0.5 w-full bg-amber-950/50"></div>
+      <div class="h-0.5 w-full bg-amber-950/50"></div>
+      <div class="h-0.5 w-full bg-amber-950/50"></div>
     </div>
   </div>
 
-  <!-- Bottom HUD Bar -->
-  <div class="pointer-events-none fixed bottom-3 left-0 right-0 z-20 flex items-center justify-between px-4 sm:px-6">
-    <!-- Left GAALI Toggle -->
-    <button
-      id="gaaliToggleBtn"
-      class="gaali-toggle-btn gaali-on pointer-events-auto flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black tracking-wider text-white sm:px-5 sm:py-2.5 sm:text-sm"
-    >
-      <span id="gaaliBtnText">😈 GAALI: ON</span>
+  <div class="pointer-events-none fixed top-20 right-5 sm:right-14 z-0 opacity-85 lantern" style="animation-delay: 1.5s;">
+    <div class="w-1 h-6 bg-amber-900 mx-auto"></div>
+    <div class="w-10 h-14 rounded-2xl bg-gradient-to-b from-amber-500 via-orange-600 to-red-700 shadow-[0_0_35px_rgba(255,110,0,0.65)] border border-amber-300/40 flex flex-col justify-around py-1.5">
+      <div class="h-0.5 w-full bg-amber-950/50"></div>
+      <div class="h-0.5 w-full bg-amber-950/50"></div>
+      <div class="h-0.5 w-full bg-amber-950/50"></div>
+    </div>
+  </div>
+
+  <!-- Game Canvas -->
+  <canvas id="gameCanvas" class="fixed inset-0 z-10"></canvas>
+
+  <!-- TOP HUD -->
+  <header class="fixed top-0 left-0 right-0 z-20 px-3 sm:px-6 pt-3 pb-2 flex items-center justify-between gap-2 pointer-events-none">
+    <!-- Score Box -->
+    <div class="pointer-events-auto bg-black/55 backdrop-blur-md border border-amber-500/40 rounded-2xl px-3.5 py-1.5 shadow-lg flex items-center gap-2.5">
+      <div>
+        <div class="text-[10px] font-bold tracking-wider text-amber-400 uppercase">SCORE</div>
+        <div id="scoreDisplay" class="title-font text-2xl sm:text-3xl text-white leading-none">0</div>
+      </div>
+      <div class="h-7 w-px bg-white/15"></div>
+      <div>
+        <div class="text-[10px] font-bold tracking-wider text-orange-300 uppercase">BEST</div>
+        <div id="bestDisplay" class="title-font text-lg sm:text-xl text-amber-300 leading-none">0</div>
+      </div>
+    </div>
+
+    <!-- Level Progress Bar -->
+    <div class="hidden sm:flex flex-col items-center flex-1 max-w-xs mx-2 bg-black/45 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-2">
+      <div class="w-full flex justify-between text-[11px] font-bold text-amber-200 mb-1">
+        <span id="levelLabel">LEVEL 1</span>
+        <span id="targetLabel">TARGET: 50</span>
+      </div>
+      <div class="w-full h-2.5 bg-white/10 rounded-full overflow-hidden">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full transition-all duration-200" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <!-- Lives -->
+    <div class="pointer-events-auto flex items-center gap-1.5 sm:gap-2">
+      <div id="livesContainer" class="bg-black/55 backdrop-blur-md border border-rose-500/30 rounded-2xl px-2.5 sm:px-3 py-2 flex items-center gap-1 shadow-lg">
+        <span class="text-base sm:text-xl">❤️</span>
+        <span class="text-base sm:text-xl">❤️</span>
+        <span class="text-base sm:text-xl">❤️</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- BOTTOM CONTROL BAR ("😈 GAALI: ON" Toggle + Mute + Level Target) -->
+  <footer class="fixed bottom-3 left-0 right-0 z-30 px-4 flex items-center justify-between max-w-3xl mx-auto pointer-events-none">
+    <!-- Master Sound Mute/Unmute Toggle -->
+    <button id="sfxToggleBtn"
+      class="pointer-events-auto btn-3d bg-black/65 backdrop-blur-md border border-white/15 text-white px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-lg cursor-pointer">
+      <span id="sfxIcon">🔊</span>
+      <span id="sfxLabel" class="hidden sm:inline">SOUND ON</span>
     </button>
 
-    <!-- Right Level & Target Info -->
-    <div class="flex items-center gap-2 rounded-xl border border-amber-500/25 bg-[#201007]/85 px-3 py-1.5 text-[11px] font-extrabold tracking-wider text-amber-200/90 backdrop-blur-sm sm:text-xs">
-      <span id="levelText">LEVEL 1</span>
-      <span class="text-amber-500">•</span>
-      <span class="text-amber-400">TARGET <span id="targetText">55</span></span>
-    </div>
-  </div>
+    <!-- GAALI ON / OFF MAIN BUTTON -->
+    <button id="gaaliToggleBtn"
+      class="pointer-events-auto btn-3d bg-gradient-to-r from-pink-600 via-rose-600 to-red-600 hover:from-pink-500 hover:to-red-500 text-white font-black px-5 py-2.5 rounded-2xl shadow-[0_4px_0_#881337,0_0_20px_rgba(244,63,94,0.5)] border border-pink-300/40 text-sm sm:text-base tracking-wide flex items-center gap-2 cursor-pointer">
+      <span id="gaaliEmoji">😈</span>
+      <span id="gaaliStatusText">GAALI: ON</span>
+    </button>
 
-  <!-- Start Overlay -->
-  <div id="startOverlay" class="fixed inset-0 z-30 flex items-center justify-center bg-black/60 px-4 backdrop-blur-[2px]">
-    <div class="w-full max-w-sm rounded-3xl border border-amber-500/35 bg-[#241208]/95 p-6 text-center shadow-2xl">
-      <h1 class="arcade-title bg-gradient-to-b from-yellow-300 via-amber-400 to-orange-500 bg-clip-text text-5xl text-transparent drop-shadow sm:text-6xl">
+    <!-- Mobile Target Pill -->
+    <div class="pointer-events-auto bg-black/65 backdrop-blur-md border border-amber-500/30 text-amber-300 px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold shadow-lg">
+      <span id="mobileTargetText">LVL 1 • 50</span>
+    </div>
+  </footer>
+
+  <!-- START / GAME OVER OVERLAY SCREEN -->
+  <div id="menuOverlay" class="fixed inset-0 z-30 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center px-5 text-center">
+    <div class="max-w-md w-full bg-gradient-to-b from-[#2b160c]/95 to-[#180b05]/95 border-2 border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.85)]">
+      <div class="inline-block bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-extrabold px-3 py-1 rounded-full mb-3 tracking-wider uppercase">
+        ARCADE SWIPE EDITION
+      </div>
+
+      <h1 id="menuTitle" class="title-font text-5xl sm:text-6xl text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 via-amber-400 to-orange-600 drop-shadow-[0_5px_0_rgba(120,35,0,0.9)] leading-none mb-3">
         PAGAL NINJA
       </h1>
-      <p class="mt-3 text-xs leading-relaxed text-amber-100/85 sm:text-sm">
-        Ungli se swipe karo, ninja dushmano ko kaat ke nikal jaayega. Dushman chhoo gaya toh dil kam!
+
+      <p id="menuSubtitle" class="text-amber-100/90 text-sm sm:text-base font-semibold leading-relaxed mb-5">
+        Swipe across the screen to slice ninjas! Watch out for <span class="text-rose-400 font-bold">Bombs</span> or lose a life.
       </p>
 
-      <button
-        id="startBtn"
-        class="mt-6 w-full rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 py-3.5 text-base font-black uppercase tracking-wider text-white shadow-lg shadow-orange-600/35 transition hover:brightness-110 active:scale-[0.98]"
-      >
-        START KARO
-      </button>
-    </div>
-  </div>
-
-  <!-- Game Over Overlay -->
-  <div id="gameOverOverlay" class="fixed inset-0 z-30 hidden items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
-    <div class="w-full max-w-sm rounded-3xl border border-rose-500/40 bg-[#241208]/95 p-6 text-center shadow-2xl">
-      <h2 class="arcade-title bg-gradient-to-b from-amber-300 via-orange-400 to-rose-500 bg-clip-text text-5xl text-transparent">
-        GAME OVER
-      </h2>
-
-      <div class="mt-5 grid grid-cols-2 gap-3 rounded-2xl border border-amber-500/25 bg-black/40 p-4">
-        <div>
-          <div class="text-[10px] font-extrabold uppercase tracking-wider text-amber-200/70">SCORE</div>
-          <div id="finalScoreVal" class="mt-1 text-3xl font-black text-white">0</div>
-        </div>
-        <div class="border-l border-amber-500/20">
-          <div class="text-[10px] font-extrabold uppercase tracking-wider text-amber-300/80">BEST</div>
-          <div id="finalBestVal" class="mt-1 text-3xl font-black text-amber-400">0</div>
+      <!-- Final Score Card (Visible on Game Over) -->
+      <div id="gameOverStats" class="hidden mb-5 bg-black/50 border border-rose-500/40 rounded-2xl p-4">
+        <div class="flex justify-around items-center">
+          <div>
+            <div class="text-[11px] text-gray-400 uppercase font-bold">Final Score</div>
+            <div id="finalScoreVal" class="title-font text-3xl text-white">0</div>
+          </div>
+          <div class="h-8 w-px bg-white/15"></div>
+          <div>
+            <div class="text-[11px] text-gray-400 uppercase font-bold">Best Score</div>
+            <div id="finalBestVal" class="title-font text-3xl text-amber-400">0</div>
+          </div>
         </div>
       </div>
 
-      <button
-        id="playAgainBtn"
-        class="mt-6 w-full rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 py-3.5 text-base font-black uppercase tracking-wider text-white shadow-lg shadow-orange-600/35 transition hover:brightness-110 active:scale-[0.98]"
-      >
-        PHIR SE KHELO
+      <!-- Primary Start Button -->
+      <button id="startGameBtn"
+        class="btn-3d w-full bg-gradient-to-b from-amber-400 via-orange-500 to-red-600 hover:from-amber-300 hover:to-red-500 text-white title-font text-2xl sm:text-3xl py-3.5 px-6 rounded-2xl shadow-[0_6px_0_#7c2d12,0_10px_25px_rgba(234,88,12,0.5)] border border-yellow-200/50 cursor-pointer">
+        START GAME
       </button>
     </div>
   </div>
 
   <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    /**
+     * PAGAL NINJA - 120FPS HIGH-REFRESH SMOOTH ENGINE
+     * - Delta-time normalized physics (identical speed on 60Hz, 90Hz, 120Hz, 144Hz displays)
+     * - High-DPI Retina canvas scaling + cached offscreen sprite bitmaps (zero shadowBlur lag)
+     * - Coalesced pointermove events for razor-sharp 120Hz+ swipe registration
+     * - Pre-configured fixed audio paths in `sounds/`
+     */
 
-    const scoreEl = document.getElementById('scoreVal');
-    const livesContainer = document.getElementById('livesContainer');
-    const progressFill = document.getElementById('progressFill');
-    const star1 = document.getElementById('star1');
-    const star2 = document.getElementById('star2');
-    const levelText = document.getElementById('levelText');
-    const targetText = document.getElementById('targetText');
-
-    const startOverlay = document.getElementById('startOverlay');
-    const gameOverOverlay = document.getElementById('gameOverOverlay');
-    const finalScoreEl = document.getElementById('finalScoreVal');
-    const finalBestEl = document.getElementById('finalBestVal');
-    const startBtn = document.getElementById('startBtn');
-    const playAgainBtn = document.getElementById('playAgainBtn');
-    const gaaliToggleBtn = document.getElementById('gaaliToggleBtn');
-    const gaaliBtnText = document.getElementById('gaaliBtnText');
-
-    let width = 0;
-    let height = 0;
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    function resizeCanvas() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    // Persistent Best Score & Gaali Toggle
-    const BEST_KEY = 'pagal_ninja_stick_best_v1';
-    const GAALI_KEY = 'pagal_ninja_gaali_mode_v1';
-
-    let bestScore = Number(localStorage.getItem(BEST_KEY) || 0);
-    let gaaliEnabled = localStorage.getItem(GAALI_KEY) !== 'off';
-    updateGaaliButtonUI();
-
-    function updateGaaliButtonUI() {
-      if (gaaliEnabled) {
-        gaaliBtnText.textContent = '😈 GAALI: ON';
-        gaaliToggleBtn.classList.remove('gaali-off');
-        gaaliToggleBtn.classList.add('gaali-on');
-      } else {
-        gaaliBtnText.textContent = '😇 GAALI: OFF';
-        gaaliToggleBtn.classList.remove('gaali-on');
-        gaaliToggleBtn.classList.add('gaali-off');
-      }
-    }
-
-    // Fallback Web Audio SFX (used only when GAALI is OFF or MP3 isn't uploaded yet)
-    let audioCtx = null;
-    function getAudioCtx() {
-      if (!audioCtx) {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioContextClass) {
-          audioCtx = new AudioContextClass();
-        }
-      }
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume().catch(() => {});
-      }
-      return audioCtx;
-    }
-
-    function playFallbackSfx(type) {
-      const ctxAudio = getAudioCtx();
-      if (!ctxAudio) return;
-
-      const now = ctxAudio.currentTime;
-      const osc = ctxAudio.createOscillator();
-      const gain = ctxAudio.createGain();
-
-      if (type === 'kill') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(560, now);
-        osc.frequency.exponentialRampToValueAtTime(180, now + 0.1);
-        gain.gain.setValueAtTime(0.14, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
-        osc.connect(gain);
-        gain.connect(ctxAudio.destination);
-        osc.start(now);
-        osc.stop(now + 0.11);
-      } else if (type === 'bomb') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(150, now);
-        osc.frequency.exponentialRampToValueAtTime(40, now + 0.35);
-        gain.gain.setValueAtTime(0.24, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
-        osc.connect(gain);
-        gain.connect(ctxAudio.destination);
-        osc.start(now);
-        osc.stop(now + 0.36);
-      } else if (type === 'gameover') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(290, now);
-        osc.frequency.linearRampToValueAtTime(115, now + 0.45);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.46);
-        osc.connect(gain);
-        gain.connect(ctxAudio.destination);
-        osc.start(now);
-        osc.stop(now + 0.46);
-      }
-    }
-
-    // Pre-mapped MP3 sounds in `sounds/` directory
-    const SOUND_PATHS = {
+    // ==========================================
+    // 1. PRE-CONFIGURED AUDIO PATHS (`sounds/`)
+    // ==========================================
+    const AUDIO_PATHS = {
       kills: [
         'sounds/kill1.mp3',
         'sounds/kill2.mp3',
@@ -275,912 +229,955 @@
         'sounds/kill10.mp3'
       ],
       bomb: 'sounds/bomb.mp3',
-      gameover: 'sounds/gameover.mp3'
+      gameOver: 'sounds/gameover.mp3'
     };
 
-    const availableSounds = {
-      kills: new Array(SOUND_PATHS.kills.length).fill(false),
-      bomb: false,
-      gameover: false
+    // ==========================================
+    // 2. GAME STATE & CONFIGURATION
+    // ==========================================
+    const state = {
+      running: false,
+      score: 0,
+      bestScore: parseInt(localStorage.getItem('pagal_ninja_best') || '0', 10),
+      lives: 3,
+      maxLives: 3,
+      level: 1,
+      targetScore: 50,
+      gaaliMode: true,
+      sfxEnabled: true,
+      entities: [],
+      slicedHalves: [],
+      particles: [],
+      floatingPopups: [],
+      swipeTrail: [],
+      isSwiping: false,
+      lastSpawnTime: 0,
+      spawnInterval: 1150,
+      comboCount: 0,
+      lastSliceTime: 0,
+      lastKillIndex: -1,
+      viewW: window.innerWidth,
+      viewH: window.innerHeight,
+      dpr: Math.min(window.devicePixelRatio || 1, 2)
     };
 
-    const activeAudioPool = [];
+    // ==========================================
+    // 3. DOM REFERENCES
+    // ==========================================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
 
-    function probeAudio(url, onReady) {
-      const probe = new Audio();
-      probe.preload = 'auto';
-      probe.src = url;
-      probe.addEventListener('canplaythrough', () => onReady(true), { once: true });
-      probe.addEventListener('loadeddata', () => onReady(true), { once: true });
-      probe.addEventListener('error', () => onReady(false), { once: true });
-      probe.load();
-    }
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const bestDisplay = document.getElementById('bestDisplay');
+    const livesContainer = document.getElementById('livesContainer');
+    const levelLabel = document.getElementById('levelLabel');
+    const targetLabel = document.getElementById('targetLabel');
+    const progressBar = document.getElementById('progressBar');
+    const mobileTargetText = document.getElementById('mobileTargetText');
 
-    function initSoundSystem() {
-      SOUND_PATHS.kills.forEach((url, idx) => {
-        probeAudio(url, (ok) => {
-          availableSounds.kills[idx] = ok;
-        });
-      });
-      probeAudio(SOUND_PATHS.bomb, (ok) => {
-        availableSounds.bomb = ok;
-      });
-      probeAudio(SOUND_PATHS.gameover, (ok) => {
-        availableSounds.gameover = ok;
-      });
-    }
+    const gaaliToggleBtn = document.getElementById('gaaliToggleBtn');
+    const gaaliEmoji = document.getElementById('gaaliEmoji');
+    const gaaliStatusText = document.getElementById('gaaliStatusText');
 
-    initSoundSystem();
+    const sfxToggleBtn = document.getElementById('sfxToggleBtn');
+    const sfxIcon = document.getElementById('sfxIcon');
+    const sfxLabel = document.getElementById('sfxLabel');
 
-    function playMp3Overlapping(url, volume = 1.0) {
-      const audio = new Audio(url);
-      audio.volume = volume;
-      activeAudioPool.push(audio);
-      audio.addEventListener('ended', () => {
-        const i = activeAudioPool.indexOf(audio);
-        if (i !== -1) activeAudioPool.splice(i, 1);
-      });
-      audio.play().catch(() => {
-        playFallbackSfx('kill');
-      });
-    }
+    const menuOverlay = document.getElementById('menuOverlay');
+    const menuTitle = document.getElementById('menuTitle');
+    const menuSubtitle = document.getElementById('menuSubtitle');
+    const gameOverStats = document.getElementById('gameOverStats');
+    const finalScoreVal = document.getElementById('finalScoreVal');
+    const finalBestVal = document.getElementById('finalBestVal');
+    const startGameBtn = document.getElementById('startGameBtn');
 
-    function stopAllActiveAudio() {
-      while (activeAudioPool.length > 0) {
-        const a = activeAudioPool.pop();
-        try {
-          a.pause();
-          a.currentTime = 0;
-        } catch (_) {}
+    bestDisplay.textContent = state.bestScore;
+
+    // ==========================================
+    // 4. OVERLAPPING AUDIO POOL + WEB AUDIO FALLBACK SFX
+    // ==========================================
+    let audioCtx = null;
+
+    function unlockWebAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
       }
     }
 
-    function triggerKillSound() {
-      if (!gaaliEnabled) {
-        playFallbackSfx('kill');
-        return;
+    const killPools = AUDIO_PATHS.kills.map((src) => {
+      const channels = [];
+      for (let c = 0; c < 3; c++) {
+        const audio = new Audio();
+        audio.preload = 'auto';
+        audio.src = src;
+        channels.push(audio);
       }
-      const readyIndices = [];
-      for (let i = 0; i < SOUND_PATHS.kills.length; i++) {
-        if (availableSounds.kills[i]) readyIndices.push(i);
-      }
-      const chosenIdx = readyIndices.length > 0
-        ? readyIndices[Math.floor(Math.random() * readyIndices.length)]
-        : Math.floor(Math.random() * SOUND_PATHS.kills.length);
-
-      playMp3Overlapping(SOUND_PATHS.kills[chosenIdx], 1.0);
-    }
-
-    function triggerBombSound() {
-      if (!gaaliEnabled) {
-        playFallbackSfx('bomb');
-        return;
-      }
-      if (availableSounds.bomb) {
-        playMp3Overlapping(SOUND_PATHS.bomb, 1.0);
-      } else {
-        playFallbackSfx('bomb');
-      }
-    }
-
-    function triggerGameOverSound() {
-      if (!gaaliEnabled) {
-        playFallbackSfx('gameover');
-        return;
-      }
-      if (availableSounds.gameover) {
-        playMp3Overlapping(SOUND_PATHS.gameover, 1.0);
-      } else {
-        playFallbackSfx('gameover');
-      }
-    }
-
-    gaaliToggleBtn.addEventListener('click', () => {
-      gaaliEnabled = !gaaliEnabled;
-      localStorage.setItem(GAALI_KEY, gaaliEnabled ? 'on' : 'off');
-      updateGaaliButtonUI();
-      if (!gaaliEnabled) {
-        stopAllActiveAudio();
-      }
-      getAudioCtx();
+      return { channels, pointer: 0 };
     });
 
-    // Game State & Stickman Ninja Visuals (matching original video)
-    let gameState = 'menu'; // 'menu' | 'playing' | 'gameover'
-    let score = 0;
-    let lives = 3;
-    let level = 1;
-    let targetScore = 55;
-    let spawnTimer = 0;
-    let screenShake = 0;
-    let flashAlpha = 0;
+    const bombAudio = new Audio();
+    bombAudio.preload = 'auto';
+    bombAudio.src = AUDIO_PATHS.bomb;
 
-    // Player Hero Stickman Ninja
-    const player = {
-      x: width * 0.5,
-      y: height * 0.72,
-      targetX: width * 0.5,
-      targetY: height * 0.72,
-      slashAnim: 0,
-      slashAngle: 0,
-      facing: 1
-    };
+    const gameOverAudio = new Audio();
+    gameOverAudio.preload = 'auto';
+    gameOverAudio.src = AUDIO_PATHS.gameOver;
 
-    const enemies = [];
-    const slicedStickParts = [];
-    const floatingTexts = [];
-    const trailPoints = [];
-    const petals = [];
+    function stopAllMappedAudio() {
+      killPools.forEach(pool => {
+        pool.channels.forEach(ch => {
+          try {
+            ch.pause();
+            ch.currentTime = 0;
+          } catch (e) {}
+        });
+      });
+      try {
+        bombAudio.pause();
+        bombAudio.currentTime = 0;
+      } catch (e) {}
+      try {
+        gameOverAudio.pause();
+        gameOverAudio.currentTime = 0;
+      } catch (e) {}
+    }
 
-    // Sakura petals floating in dojo
-    for (let i = 0; i < 18; i++) {
-      petals.push({
-        x: Math.random() * 1200,
-        y: Math.random() * 900,
-        vx: (Math.random() - 0.5) * 18,
-        vy: 18 + Math.random() * 24,
-        rot: Math.random() * Math.PI * 2,
-        vRot: (Math.random() - 0.5) * 2,
-        size: 3 + Math.random() * 2.5
+    function playCleanWhooshSFX() {
+      if (!state.sfxEnabled) return;
+      unlockWebAudio();
+      if (!audioCtx) return;
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(520, now);
+      osc.frequency.exponentialRampToValueAtTime(140, now + 0.14);
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.14);
+    }
+
+    function playCleanSlashSFX() {
+      if (!state.sfxEnabled) return;
+      unlockWebAudio();
+      if (!audioCtx) return;
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(360, now);
+      osc.frequency.exponentialRampToValueAtTime(95, now + 0.18);
+
+      gain.gain.setValueAtTime(0.24, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.18);
+    }
+
+    function playCleanExplosionSFX() {
+      if (!state.sfxEnabled) return;
+      unlockWebAudio();
+      if (!audioCtx) return;
+
+      const now = audioCtx.currentTime;
+      const bufferSize = audioCtx.sampleRate * 0.45;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.14));
+      }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(440, now);
+      filter.frequency.exponentialRampToValueAtTime(55, now + 0.45);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.55, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      noise.start(now);
+    }
+
+    function playCleanGameOverSFX() {
+      if (!state.sfxEnabled) return;
+      unlockWebAudio();
+      if (!audioCtx) return;
+
+      const notes = [330, 293.66, 261.63, 196];
+      notes.forEach((freq, idx) => {
+        const start = audioCtx.currentTime + idx * 0.14;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, start);
+
+        gain.gain.setValueAtTime(0.22, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.22);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(start);
+        osc.stop(start + 0.22);
       });
     }
 
-    const STICK_ENEMY_STYLES = [
-      { outline: '#38bdf8', band: '#f97316', skin: '#f5d0a9', expression: 'glasses' },
-      { outline: '#a3e635', band: '#ffffff', skin: '#d99b66', expression: 'smug' },
-      { outline: '#f472b6', band: '#fde047', skin: '#f5d0a9', expression: 'glasses' },
-      { outline: '#fbbf24', band: '#ef4444', skin: '#e8b88a', expression: 'angry' }
+    function triggerKillAudio() {
+      if (!state.sfxEnabled) return;
+      unlockWebAudio();
+
+      if (!state.gaaliMode) {
+        playCleanSlashSFX();
+        return;
+      }
+
+      let idx = Math.floor(Math.random() * killPools.length);
+      if (killPools.length > 1 && idx === state.lastKillIndex) {
+        idx = (idx + 1) % killPools.length;
+      }
+      state.lastKillIndex = idx;
+
+      const pool = killPools[idx];
+      const channel = pool.channels[pool.pointer];
+      pool.pointer = (pool.pointer + 1) % pool.channels.length;
+
+      try {
+        channel.currentTime = 0;
+        const playPromise = channel.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            playCleanSlashSFX();
+          });
+        }
+      } catch (e) {
+        playCleanSlashSFX();
+      }
+    }
+
+    function triggerBombAudio() {
+      if (!state.sfxEnabled) return;
+      unlockWebAudio();
+
+      if (!state.gaaliMode) {
+        playCleanExplosionSFX();
+        return;
+      }
+
+      try {
+        bombAudio.currentTime = 0;
+        const playPromise = bombAudio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            playCleanExplosionSFX();
+          });
+        }
+      } catch (e) {
+        playCleanExplosionSFX();
+      }
+    }
+
+    function triggerGameOverAudio() {
+      if (!state.sfxEnabled) return;
+      unlockWebAudio();
+
+      if (!state.gaaliMode) {
+        playCleanGameOverSFX();
+        return;
+      }
+
+      try {
+        gameOverAudio.currentTime = 0;
+        const playPromise = gameOverAudio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            playCleanGameOverSFX();
+          });
+        }
+      } catch (e) {
+        playCleanGameOverSFX();
+      }
+    }
+
+    // ==========================================
+    // 5. HUD UPDATES
+    // ==========================================
+    function updateHUD() {
+      scoreDisplay.textContent = state.score;
+      if (state.score > state.bestScore) {
+        state.bestScore = state.score;
+        localStorage.setItem('pagal_ninja_best', state.bestScore.toString());
+      }
+      bestDisplay.textContent = state.bestScore;
+
+      state.level = Math.floor(state.score / 50) + 1;
+      state.targetScore = state.level * 50;
+      const prevLevelScore = (state.level - 1) * 50;
+      const pct = Math.min(100, Math.max(0, ((state.score - prevLevelScore) / 50) * 100));
+
+      levelLabel.textContent = `LEVEL ${state.level}`;
+      targetLabel.textContent = `TARGET: ${state.targetScore}`;
+      progressBar.style.width = `${pct}%`;
+      mobileTargetText.textContent = `LVL ${state.level} • ${state.targetScore}`;
+
+      let heartsHTML = '';
+      for (let i = 0; i < state.maxLives; i++) {
+        if (i < state.lives) {
+          heartsHTML += `<span class="text-base sm:text-xl transition-transform scale-100">❤️</span>`;
+        } else {
+          heartsHTML += `<span class="text-base sm:text-xl opacity-25 grayscale">🖤</span>`;
+        }
+      }
+      livesContainer.innerHTML = heartsHTML;
+    }
+
+    // ==========================================
+    // 6. HIGH-DPI CANVAS & OFFSCREEN SPRITE CACHE (120FPS OPTIMIZATION)
+    // ==========================================
+    const NINJA_COLORS = [
+      { id: 'sky', body: '#38bdf8', band: '#0284c7', juice: '#38bdf8' },
+      { id: 'green', body: '#4ade80', band: '#16a34a', juice: '#4ade80' },
+      { id: 'pink', body: '#f472b6', band: '#db2777', juice: '#f472b6' },
+      { id: 'yellow', body: '#facc15', band: '#ca8a04', juice: '#facc15' },
+      { id: 'orange', body: '#fb923c', band: '#ea580c', juice: '#fb923c' }
     ];
 
-    const HIT_ONOMA = ['THOK!', 'POOT!', 'ABE!', 'AREE!', 'KHACH!'];
+    const spriteCache = new Map();
 
-    function updateHud() {
-      scoreEl.textContent = score;
-      level = Math.floor(score / 55) + 1;
-      targetScore = level * 55;
-      levelText.textContent = `LEVEL ${level}`;
-      targetText.textContent = targetScore;
+    function getCachedNinjaSprite(theme, radius) {
+      const key = `ninja_${theme.id}_${radius}_${state.dpr}`;
+      if (spriteCache.has(key)) return spriteCache.get(key);
 
-      const levelProgress = Math.min(100, ((score % 55) / 55) * 100);
-      progressFill.style.width = `${levelProgress}%`;
-      star1.style.opacity = levelProgress >= 45 ? '1' : '0.35';
-      star2.style.opacity = levelProgress >= 85 ? '1' : '0.35';
+      const pad = 22;
+      const size = Math.ceil((radius * 2 + pad * 2) * state.dpr);
+      const off = document.createElement('canvas');
+      off.width = size;
+      off.height = size;
+      const octx = off.getContext('2d');
+      octx.scale(state.dpr, state.dpr);
+      octx.translate(radius + pad, radius + pad);
 
-      let heartsHtml = '';
-      for (let i = 0; i < 3; i++) {
-        heartsHtml += i < lives ? '<span>❤️</span>' : '<span class="opacity-30">🖤</span>';
-      }
-      livesContainer.innerHTML = heartsHtml;
+      const color = theme.body;
+      octx.shadowColor = color;
+      octx.shadowBlur = 12;
+
+      octx.strokeStyle = '#ffffff';
+      octx.lineWidth = 4;
+      octx.lineCap = 'round';
+
+      // Torso
+      octx.beginPath();
+      octx.moveTo(0, -radius * 0.1);
+      octx.lineTo(0, radius * 0.45);
+      octx.stroke();
+
+      // Arms
+      octx.beginPath();
+      octx.moveTo(-radius * 0.45, radius * 0.05);
+      octx.lineTo(0, radius * 0.15);
+      octx.lineTo(radius * 0.48, -radius * 0.08);
+      octx.stroke();
+
+      // Legs
+      octx.beginPath();
+      octx.moveTo(-radius * 0.35, radius * 0.85);
+      octx.lineTo(0, radius * 0.45);
+      octx.lineTo(radius * 0.35, radius * 0.85);
+      octx.stroke();
+
+      // Head
+      octx.fillStyle = color;
+      octx.beginPath();
+      octx.arc(0, -radius * 0.38, radius * 0.36, 0, Math.PI * 2);
+      octx.fill();
+      octx.stroke();
+
+      // Ninja Headband
+      octx.fillStyle = '#ef4444';
+      octx.fillRect(-radius * 0.36, -radius * 0.52, radius * 0.72, radius * 0.14);
+
+      // Eyes
+      octx.shadowBlur = 0;
+      octx.fillStyle = '#ffffff';
+      octx.beginPath();
+      octx.arc(-radius * 0.13, -radius * 0.34, radius * 0.1, 0, Math.PI * 2);
+      octx.arc(radius * 0.13, -radius * 0.34, radius * 0.1, 0, Math.PI * 2);
+      octx.fill();
+
+      octx.fillStyle = '#0f172a';
+      octx.beginPath();
+      octx.arc(-radius * 0.11, -radius * 0.34, radius * 0.045, 0, Math.PI * 2);
+      octx.arc(radius * 0.15, -radius * 0.34, radius * 0.045, 0, Math.PI * 2);
+      octx.fill();
+
+      const entry = { canvas: off, logicalSize: radius * 2 + pad * 2 };
+      spriteCache.set(key, entry);
+      return entry;
     }
 
-    function startGame() {
-      getAudioCtx();
-      score = 0;
-      lives = 3;
-      spawnTimer = 0.2;
-      screenShake = 0;
-      flashAlpha = 0;
-      enemies.length = 0;
-      slicedStickParts.length = 0;
-      floatingTexts.length = 0;
-      trailPoints.length = 0;
+    function getCachedBombSprite(radius) {
+      const key = `bomb_${radius}_${state.dpr}`;
+      if (spriteCache.has(key)) return spriteCache.get(key);
 
-      player.x = width * 0.5;
-      player.y = height * 0.72;
-      player.targetX = player.x;
-      player.targetY = player.y;
-      player.slashAnim = 0;
+      const pad = 26;
+      const size = Math.ceil((radius * 2 + pad * 2) * state.dpr);
+      const off = document.createElement('canvas');
+      off.width = size;
+      off.height = size;
+      const octx = off.getContext('2d');
+      octx.scale(state.dpr, state.dpr);
+      octx.translate(radius + pad, radius + pad);
 
-      gameState = 'playing';
-      updateHud();
-      startOverlay.classList.add('hidden');
-      gameOverOverlay.classList.add('hidden');
+      const r = radius * 0.85;
+      octx.shadowColor = '#ef4444';
+      octx.shadowBlur = 18;
+
+      const grad = octx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
+      grad.addColorStop(0, '#475569');
+      grad.addColorStop(0.5, '#1e293b');
+      grad.addColorStop(1, '#020617');
+
+      octx.fillStyle = grad;
+      octx.beginPath();
+      octx.arc(0, 0, r, 0, Math.PI * 2);
+      octx.fill();
+
+      octx.lineWidth = 3;
+      octx.strokeStyle = '#ef4444';
+      octx.stroke();
+
+      // Fuse
+      octx.shadowBlur = 0;
+      octx.strokeStyle = '#d97706';
+      octx.lineWidth = 4;
+      octx.beginPath();
+      octx.moveTo(0, -r);
+      octx.quadraticCurveTo(r * 0.3, -r * 1.35, r * 0.55, -r * 1.2);
+      octx.stroke();
+
+      octx.fillStyle = '#ef4444';
+      octx.font = `bold ${Math.round(r * 0.85)}px Inter, sans-serif`;
+      octx.textAlign = 'center';
+      octx.textBaseline = 'middle';
+      octx.fillText('💣', 0, 2);
+
+      const entry = { canvas: off, logicalSize: radius * 2 + pad * 2, r };
+      spriteCache.set(key, entry);
+      return entry;
     }
 
-    function endGame() {
-      if (gameState === 'gameover') return;
-      gameState = 'gameover';
-      if (score > bestScore) {
-        bestScore = score;
-        localStorage.setItem(BEST_KEY, String(bestScore));
-      }
-      finalScoreEl.textContent = score;
-      finalBestEl.textContent = bestScore;
-      gameOverOverlay.classList.remove('hidden');
-      gameOverOverlay.classList.add('flex');
-      triggerGameOverSound();
+    function resizeCanvas() {
+      state.viewW = window.innerWidth;
+      state.viewH = window.innerHeight;
+      state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(state.viewW * state.dpr);
+      canvas.height = Math.floor(state.viewH * state.dpr);
+      ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+      spriteCache.clear();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const HIT_WORDS = ['SLICE!', 'SLASH!', 'HIT!', 'CRIT!', 'BOOM!'];
+
+    // Physics calibrated at 60Hz baseline and scaled smoothly via delta-time (dtScale)
+    function spawnEntity() {
+      const isBomb = Math.random() < Math.min(0.28, 0.14 + state.level * 0.02);
+      const radius = Math.round(Math.max(34, Math.min(46, state.viewW * 0.055)));
+      const margin = radius + 24;
+      const x = margin + Math.random() * Math.max(40, state.viewW - margin * 2);
+      const y = state.viewH + radius;
+
+      const centerBias = (state.viewW / 2 - x) * (0.004 + Math.random() * 0.004);
+      const vx = centerBias + (Math.random() - 0.5) * 2.5;
+      const minVy = -Math.sqrt(2 * 0.24 * (state.viewH * 0.62));
+      const maxVy = -Math.sqrt(2 * 0.24 * (state.viewH * 0.84));
+      const vy = minVy + Math.random() * (maxVy - minVy);
+
+      const theme = NINJA_COLORS[Math.floor(Math.random() * NINJA_COLORS.length)];
+
+      state.entities.push({
+        id: Math.random(),
+        type: isBomb ? 'bomb' : 'ninja',
+        x,
+        y,
+        vx,
+        vy,
+        radius,
+        rotation: (Math.random() - 0.5) * 0.4,
+        vRot: (Math.random() - 0.5) * 0.07,
+        theme,
+        sliced: false,
+        enteredScreen: false
+      });
     }
 
-    startBtn.addEventListener('click', startGame);
-    playAgainBtn.addEventListener('click', startGame);
-
-    function spawnEnemyWave() {
-      const count = Math.random() < 0.35 ? 2 : 1;
+    function createExplosionParticles(x, y, color, count = 18) {
       for (let i = 0; i < count; i++) {
-        const isBomb = Math.random() < 0.18;
-        const margin = 52;
-        const x = margin + Math.random() * Math.max(60, width - margin * 2);
-        const y = -45;
-        const style = STICK_ENEMY_STYLES[Math.floor(Math.random() * STICK_ENEMY_STYLES.length)];
-
-        enemies.push({
-          type: isBomb ? 'bomb' : 'enemy',
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 7;
+        state.particles.push({
           x,
           y,
-          vx: (Math.random() - 0.5) * 75,
-          vy: 145 + Math.min(score * 3.5, 220) + Math.random() * 55,
-          radius: 28,
-          wobblePhase: Math.random() * Math.PI * 2,
-          style,
-          sliced: false
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: 3 + Math.random() * 5,
+          color,
+          alpha: 1,
+          decay: 0.02 + Math.random() * 0.02
         });
       }
     }
 
-    function createSlicedStickman(ent, swipeAngle) {
-      // Head flying off + separated limb sticks (like in the video)
-      slicedStickParts.push({
-        kind: 'head',
-        x: ent.x,
-        y: ent.y - 16,
-        vx: (Math.random() - 0.5) * 260,
-        vy: -190 - Math.random() * 90,
-        rot: 0,
-        vRot: (Math.random() - 0.5) * 14,
-        alpha: 1,
-        style: ent.style
-      });
-
-      const limbColors = [ent.style.outline, '#fde047', '#f472b6', '#ffffff'];
-      for (let i = 0; i < 4; i++) {
-        const angle = swipeAngle + (i - 1.5) * 0.65;
-        const speed = 130 + Math.random() * 140;
-        slicedStickParts.push({
-          kind: 'limb',
-          x: ent.x + (Math.random() - 0.5) * 16,
-          y: ent.y + (Math.random() - 0.5) * 18,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 80,
-          rot: Math.random() * Math.PI,
-          vRot: (Math.random() - 0.5) * 16,
-          alpha: 1,
-          color: limbColors[i % limbColors.length]
-        });
-      }
-
-      const word = HIT_ONOMA[Math.floor(Math.random() * HIT_ONOMA.length)];
-      floatingTexts.push({
-        x: ent.x,
-        y: ent.y - 28,
-        text: word,
-        sub: '+3',
-        vy: -55,
+    function createFloatingPopup(x, y, text, color = '#fde047') {
+      state.floatingPopups.push({
+        x,
+        y,
+        vy: -2.2,
+        text,
+        color,
         alpha: 1
       });
     }
 
-    function distToSegmentSq(px, py, x1, y1, x2, y2) {
+    // ==========================================
+    // 7. SLICING & COLLISION DETECTION
+    // ==========================================
+    function lineCircleIntersect(x1, y1, x2, y2, cx, cy, r) {
       const dx = x2 - x1;
       const dy = y2 - y1;
       const lenSq = dx * dx + dy * dy;
       if (lenSq === 0) {
-        const ex = px - x1;
-        const ey = py - y1;
-        return ex * ex + ey * ey;
+        return Math.hypot(cx - x1, cy - y1) <= r;
       }
-      let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+      let t = ((cx - x1) * dx + (cy - y1) * dy) / lenSq;
       t = Math.max(0, Math.min(1, t));
-      const projX = x1 + t * dx;
-      const projY = y1 + t * dy;
-      const distX = px - projX;
-      const distY = py - projY;
-      return distX * distX + distY * distY;
+      const closestX = x1 + t * dx;
+      const closestY = y1 + t * dy;
+      return Math.hypot(cx - closestX, cy - closestY) <= r;
     }
 
-    let isPointerDown = false;
+    function checkSwipeCollisions(x1, y1, x2, y2) {
+      if (!state.running) return;
 
-    function handleSwipeSegment(x1, y1, x2, y2) {
-      if (gameState !== 'playing') return;
-
-      player.targetX = x2;
-      player.targetY = Math.max(110, Math.min(height - 90, y2));
-      if (Math.abs(x2 - x1) > 2) {
-        player.facing = x2 >= x1 ? 1 : -1;
-      }
-
-      const swipeAngle = Math.atan2(y2 - y1, x2 - x1);
-
-      for (let i = enemies.length - 1; i >= 0; i--) {
-        const ent = enemies[i];
+      for (let i = state.entities.length - 1; i >= 0; i--) {
+        const ent = state.entities[i];
         if (ent.sliced) continue;
-        const hitRadius = ent.radius + 14;
-        const dSq = distToSegmentSq(ent.x, ent.y, x1, y1, x2, y2);
 
-        if (dSq <= hitRadius * hitRadius) {
+        if (lineCircleIntersect(x1, y1, x2, y2, ent.x, ent.y, ent.radius * 1.08)) {
           ent.sliced = true;
-          player.slashAnim = 1;
-          player.slashAngle = swipeAngle;
 
-          if (ent.type === 'enemy') {
-            score += 3;
-            if (score > bestScore) {
-              bestScore = score;
-              localStorage.setItem(BEST_KEY, String(bestScore));
-            }
-            updateHud();
-            createSlicedStickman(ent, swipeAngle);
-            triggerKillSound();
-            enemies.splice(i, 1);
-          } else {
-            // Bomb hit
-            lives -= 1;
-            screenShake = 18;
-            flashAlpha = 0.5;
-            updateHud();
-            triggerBombSound();
-            enemies.splice(i, 1);
-            if (lives <= 0) {
+          if (ent.type === 'bomb') {
+            triggerBombAudio();
+            createExplosionParticles(ent.x, ent.y, '#ef4444', 32);
+            createExplosionParticles(ent.x, ent.y, '#facc15', 20);
+            createFloatingPopup(ent.x, ent.y - 20, 'BOOM! -1 ❤️', '#f87171');
+
+            document.body.classList.remove('shake');
+            void document.body.offsetWidth;
+            document.body.classList.add('shake');
+
+            state.lives = Math.max(0, state.lives - 1);
+            updateHUD();
+
+            if (state.lives <= 0) {
               endGame();
+              return;
             }
+          } else {
+            triggerKillAudio();
+
+            const now = performance.now();
+            if (now - state.lastSliceTime < 450) {
+              state.comboCount += 1;
+            } else {
+              state.comboCount = 1;
+            }
+            state.lastSliceTime = now;
+
+            const bonus = state.comboCount >= 2 ? state.comboCount : 0;
+            const points = 3 + bonus;
+            state.score += points;
+            updateHUD();
+
+            state.slicedHalves.push(
+              {
+                x: ent.x - 10,
+                y: ent.y,
+                vx: ent.vx - 3.2,
+                vy: ent.vy - 2,
+                rotation: ent.rotation - 0.2,
+                vRot: -0.09,
+                radius: ent.radius,
+                theme: ent.theme,
+                half: 'top',
+                alpha: 1
+              },
+              {
+                x: ent.x + 10,
+                y: ent.y + 12,
+                vx: ent.vx + 3.2,
+                vy: ent.vy + 1,
+                rotation: ent.rotation + 0.2,
+                vRot: 0.09,
+                radius: ent.radius,
+                theme: ent.theme,
+                half: 'bottom',
+                alpha: 1
+              }
+            );
+
+            createExplosionParticles(ent.x, ent.y, ent.theme.juice, 18);
+            const hitWord = HIT_WORDS[Math.floor(Math.random() * HIT_WORDS.length)];
+            const label = state.comboCount >= 2 ? `${state.comboCount}x COMBO! +${points}` : `${hitWord} +${points}`;
+            createFloatingPopup(ent.x, ent.y - 25, label, '#fde047');
           }
+
+          state.entities.splice(i, 1);
         }
       }
     }
 
-    function addTrailPoint(x, y) {
-      const now = performance.now();
-      const prev = trailPoints[trailPoints.length - 1];
-      trailPoints.push({ x, y, t: now });
-      if (trailPoints.length > 20) {
-        trailPoints.shift();
-      }
-      if (prev) {
-        handleSwipeSegment(prev.x, prev.y, x, y);
-      }
+    // ==========================================
+    // 8. FAST BLIT DRAWING HELPERS
+    // ==========================================
+    function drawNinjaCharacter(ent) {
+      const sprite = getCachedNinjaSprite(ent.theme, ent.radius);
+      ctx.save();
+      ctx.translate(ent.x, ent.y);
+      ctx.rotate(ent.rotation);
+      const half = sprite.logicalSize * 0.5;
+      ctx.drawImage(sprite.canvas, -half, -half, sprite.logicalSize, sprite.logicalSize);
+      ctx.restore();
     }
 
-    function getCanvasPos(e) {
-      const rect = canvas.getBoundingClientRect();
-      return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      };
+    function drawSlicedHalf(h) {
+      ctx.save();
+      ctx.globalAlpha = h.alpha;
+      ctx.translate(h.x, h.y);
+      ctx.rotate(h.rotation);
+
+      const r = h.radius;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+
+      if (h.half === 'top') {
+        ctx.fillStyle = h.theme.body;
+        ctx.beginPath();
+        ctx.arc(0, -r * 0.25, r * 0.34, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(-r * 0.34, -r * 0.38, r * 0.68, r * 0.12);
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(0, -r * 0.1);
+        ctx.lineTo(0, r * 0.25);
+        ctx.moveTo(-r * 0.32, r * 0.65);
+        ctx.lineTo(0, r * 0.25);
+        ctx.lineTo(r * 0.32, r * 0.65);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function drawBomb(ent, timestamp) {
+      const sprite = getCachedBombSprite(ent.radius);
+      const r = sprite.r;
+      ctx.save();
+      ctx.translate(ent.x, ent.y);
+      ctx.rotate(ent.rotation);
+
+      const half = sprite.logicalSize * 0.5;
+      ctx.drawImage(sprite.canvas, -half, -half, sprite.logicalSize, sprite.logicalSize);
+
+      // Animated Fuse Spark
+      const flicker = Math.sin(timestamp * 0.045) > 0;
+      ctx.fillStyle = flicker ? '#fde047' : '#f97316';
+      ctx.beginPath();
+      ctx.arc(r * 0.55, -r * 1.2, flicker ? 8.5 : 6.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawSwipeTrail(now) {
+      while (state.swipeTrail.length > 0 && now - state.swipeTrail[0].time > 150) {
+        state.swipeTrail.shift();
+      }
+
+      if (state.swipeTrail.length < 2) return;
+
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const glowColor = state.gaaliMode ? 'rgba(244, 63, 94, 0.45)' : 'rgba(56, 189, 248, 0.45)';
+
+      for (let i = 1; i < state.swipeTrail.length; i++) {
+        const p1 = state.swipeTrail[i - 1];
+        const p2 = state.swipeTrail[i];
+        const age = (now - p2.time) / 150;
+        const alpha = Math.max(0, 1 - age);
+        const width = Math.max(2, (1 - age) * 14);
+
+        // Outer glow stroke (fast, no expensive shadowBlur filter)
+        ctx.strokeStyle = glowColor;
+        ctx.lineWidth = width + 7;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+
+        // Crisp inner blade core
+        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // ==========================================
+    // 9. DELTA-TIME NORMALIZED 120FPS GAME LOOP
+    // ==========================================
+    let lastFrameTime = performance.now();
+
+    function gameLoop(timestamp) {
+      // Normalize frame delta to 60Hz baseline so 120Hz/144Hz runs at exact physics speed with double the smoothness
+      const rawDt = timestamp - lastFrameTime;
+      lastFrameTime = timestamp;
+      const dtScale = Math.min(2.5, Math.max(0.25, rawDt / 16.6667));
+
+      ctx.clearRect(0, 0, state.viewW, state.viewH);
+
+      if (state.running) {
+        const currentInterval = Math.max(520, state.spawnInterval - (state.level - 1) * 85);
+        if (timestamp - state.lastSpawnTime > currentInterval) {
+          const burstCount = state.level >= 3 && Math.random() < 0.35 ? 2 : 1;
+          for (let b = 0; b < burstCount; b++) {
+            spawnEntity();
+          }
+          state.lastSpawnTime = timestamp;
+        }
+      }
+
+      const gravity = 0.24 * dtScale;
+
+      for (let i = state.entities.length - 1; i >= 0; i--) {
+        const ent = state.entities[i];
+        ent.x += ent.vx * dtScale;
+        ent.y += ent.vy * dtScale;
+        ent.vy += gravity;
+        ent.rotation += ent.vRot * dtScale;
+
+        if (ent.y < state.viewH - ent.radius) {
+          ent.enteredScreen = true;
+        }
+
+        if (ent.type === 'bomb') {
+          drawBomb(ent, timestamp);
+        } else {
+          drawNinjaCharacter(ent);
+        }
+
+        if (ent.enteredScreen && ent.y > state.viewH + ent.radius * 2) {
+          state.entities.splice(i, 1);
+        }
+      }
+
+      for (let i = state.slicedHalves.length - 1; i >= 0; i--) {
+        const h = state.slicedHalves[i];
+        h.x += h.vx * dtScale;
+        h.y += h.vy * dtScale;
+        h.vy += gravity * 1.1;
+        h.rotation += h.vRot * dtScale;
+        h.alpha -= 0.018 * dtScale;
+
+        if (h.alpha <= 0) {
+          state.slicedHalves.splice(i, 1);
+        } else {
+          drawSlicedHalf(h);
+        }
+      }
+
+      for (let i = state.particles.length - 1; i >= 0; i--) {
+        const p = state.particles[i];
+        p.x += p.vx * dtScale;
+        p.y += p.vy * dtScale;
+        p.vy += 0.14 * dtScale;
+        p.alpha -= p.decay * dtScale;
+
+        if (p.alpha <= 0) {
+          state.particles.splice(i, 1);
+        } else {
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      for (let i = state.floatingPopups.length - 1; i >= 0; i--) {
+        const pop = state.floatingPopups[i];
+        pop.y += pop.vy * dtScale;
+        pop.alpha -= 0.022 * dtScale;
+
+        if (pop.alpha <= 0) {
+          state.floatingPopups.splice(i, 1);
+        } else {
+          ctx.save();
+          ctx.globalAlpha = pop.alpha;
+          ctx.font = '900 22px Bungee, Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+          ctx.strokeText(pop.text, pop.x, pop.y);
+          ctx.fillStyle = pop.color;
+          ctx.fillText(pop.text, pop.x, pop.y);
+          ctx.restore();
+        }
+      }
+
+      drawSwipeTrail(timestamp);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // ==========================================
+    // 10. 120HZ COALESCED POINTER SWIPE HANDLERS
+    // ==========================================
+    function addSwipePoint(x, y, time) {
+      const prev = state.swipeTrail[state.swipeTrail.length - 1];
+      state.swipeTrail.push({ x, y, time });
+
+      if (prev && time - prev.time < 90) {
+        const dist = Math.hypot(x - prev.x, y - prev.y);
+        if (dist > 14 && Math.random() < 0.22) {
+          playCleanWhooshSFX();
+        }
+        checkSwipeCollisions(prev.x, prev.y, x, y);
+      }
     }
 
     canvas.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      getAudioCtx();
-      isPointerDown = true;
-      canvas.setPointerCapture(e.pointerId);
-      const pos = getCanvasPos(e);
-      trailPoints.push({ x: pos.x, y: pos.y, t: performance.now() });
-      if (gameState === 'playing') {
-        player.targetX = pos.x;
-        player.targetY = Math.max(110, Math.min(height - 90, pos.y));
-      }
+      unlockWebAudio();
+      state.isSwiping = true;
+      state.swipeTrail = [{ x: e.clientX, y: e.clientY, time: performance.now() }];
     });
 
     canvas.addEventListener('pointermove', (e) => {
-      if (!isPointerDown) return;
-      e.preventDefault();
-      const pos = getCanvasPos(e);
-      addTrailPoint(pos.x, pos.y);
+      if (!state.isSwiping && e.pointerType === 'mouse' && e.buttons === 0) return;
+      const now = performance.now();
+      const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      for (let i = 0; i < events.length; i++) {
+        addSwipePoint(events[i].clientX, events[i].clientY, now);
+      }
     });
 
-    function releasePointer(e) {
-      isPointerDown = false;
-      if (e && canvas.hasPointerCapture && canvas.hasPointerCapture(e.pointerId)) {
-        try {
-          canvas.releasePointerCapture(e.pointerId);
-        } catch (_) {}
-      }
+    window.addEventListener('pointerup', () => {
+      state.isSwiping = false;
+    });
+
+    // ==========================================
+    // 11. GAME FLOW CONTROLS (START / END / MODES)
+    // ==========================================
+    function startGame() {
+      unlockWebAudio();
+      stopAllMappedAudio();
+      state.running = true;
+      state.score = 0;
+      state.lives = state.maxLives;
+      state.level = 1;
+      state.comboCount = 0;
+      state.entities = [];
+      state.slicedHalves = [];
+      state.particles = [];
+      state.floatingPopups = [];
+      state.lastSpawnTime = performance.now();
+
+      updateHUD();
+      menuOverlay.classList.add('hidden');
+      gameOverStats.classList.add('hidden');
     }
 
-    canvas.addEventListener('pointerup', releasePointer);
-    canvas.addEventListener('pointercancel', releasePointer);
+    function endGame() {
+      state.running = false;
+      triggerGameOverAudio();
 
-    // Draw Dojo Wooden Plank Background + Hanging Paper Lanterns (matching original game)
-    function drawDojoBackground(now) {
-      ctx.fillStyle = '#3d1f10';
-      ctx.fillRect(0, 0, width, height);
+      menuTitle.textContent = 'GAME OVER';
+      menuSubtitle.textContent = 'Play again and beat your high score!';
+      finalScoreVal.textContent = state.score;
+      finalBestVal.textContent = state.bestScore;
+      startGameBtn.textContent = 'PLAY AGAIN';
 
-      // Vertical wooden planks
-      const plankWidth = Math.max(54, Math.floor(width / 6));
-      for (let x = 0; x < width; x += plankWidth) {
-        const idx = Math.floor(x / plankWidth);
-        ctx.fillStyle = idx % 2 === 0 ? '#452312' : '#3a1d0f';
-        ctx.fillRect(x, 0, plankWidth, height);
-
-        // Plank seam line
-        ctx.strokeStyle = 'rgba(20, 9, 4, 0.55)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
-      }
-
-      // Vignette shading
-      const vig = ctx.createRadialGradient(
-        width * 0.5,
-        height * 0.5,
-        width * 0.15,
-        width * 0.5,
-        height * 0.5,
-        Math.max(width, height) * 0.75
-      );
-      vig.addColorStop(0, 'rgba(0,0,0,0)');
-      vig.addColorStop(1, 'rgba(15, 7, 3, 0.55)');
-      ctx.fillStyle = vig;
-      ctx.fillRect(0, 0, width, height);
-
-      // Two glowing orange dojo lanterns on left and right
-      const lanternPositions = [width * 0.16, width * 0.84];
-      const lanternY = Math.min(210, height * 0.25);
-
-      lanternPositions.forEach((lx, i) => {
-        const sway = Math.sin(now * 0.002 + i) * 3;
-        ctx.save();
-        ctx.translate(lx + sway, lanternY);
-
-        // Hanging string
-        ctx.strokeStyle = '#1c0d06';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, -lanternY);
-        ctx.lineTo(0, -24);
-        ctx.stroke();
-
-        // Warm radial glow
-        const glow = ctx.createRadialGradient(0, 0, 6, 0, 0, 68);
-        glow.addColorStop(0, 'rgba(251, 146, 60, 0.42)');
-        glow.addColorStop(1, 'rgba(251, 146, 60, 0)');
-        ctx.fillStyle = glow;
-        ctx.beginPath();
-        ctx.arc(0, 0, 68, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Lantern body
-        ctx.fillStyle = '#ea580c';
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 16, 22, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.strokeStyle = '#9a3412';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        // Top & bottom caps
-        ctx.fillStyle = '#1c0d06';
-        ctx.fillRect(-10, -24, 20, 4);
-        ctx.fillRect(-10, 20, 20, 4);
-
-        ctx.restore();
-      });
-
-      // Floating sakura petals
-      ctx.fillStyle = 'rgba(251, 207, 232, 0.55)';
-      for (const p of petals) {
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-        ctx.beginPath();
-        ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
+      gameOverStats.classList.remove('hidden');
+      menuOverlay.classList.remove('hidden');
     }
 
-    // Draw Hero White Stickman Ninja with Red Headband & Katana (exact look from video)
-    function drawHeroNinja(now) {
-      ctx.save();
-      ctx.translate(player.x, player.y);
+    startGameBtn.addEventListener('click', startGame);
 
-      const bob = Math.sin(now * 0.008) * 2.5;
+    gaaliToggleBtn.addEventListener('click', () => {
+      unlockWebAudio();
+      stopAllMappedAudio();
+      state.gaaliMode = !state.gaaliMode;
 
-      // Ground shadow
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath();
-      ctx.ellipse(0, 34, 18, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Stickman white limbs & torso
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 4.5;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      // Torso
-      ctx.beginPath();
-      ctx.moveTo(0, -6 + bob);
-      ctx.lineTo(0, 14 + bob);
-      ctx.stroke();
-
-      // Legs
-      ctx.beginPath();
-      ctx.moveTo(0, 14 + bob);
-      ctx.lineTo(-10, 31);
-      ctx.moveTo(0, 14 + bob);
-      ctx.lineTo(10, 31);
-      ctx.stroke();
-
-      // Arms
-      ctx.beginPath();
-      ctx.moveTo(-14, 4 + bob);
-      ctx.lineTo(0, 0 + bob);
-      ctx.lineTo(15, 2 + bob);
-      ctx.stroke();
-
-      // Katana sword
-      ctx.save();
-      ctx.translate(14 * player.facing, 2 + bob);
-      const baseAngle = player.facing > 0 ? -0.55 : Math.PI + 0.55;
-      const swingOffset = player.slashAnim > 0 ? Math.sin(player.slashAnim * Math.PI) * 1.4 * player.facing : 0;
-      ctx.rotate(baseAngle + swingOffset);
-
-      // Blade
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 3.5;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(34, 0);
-      ctx.stroke();
-
-      // Hilt
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 4.5;
-      ctx.beginPath();
-      ctx.moveTo(-7, 0);
-      ctx.lineTo(2, 0);
-      ctx.stroke();
-      ctx.restore();
-
-      // Head circle
-      ctx.fillStyle = '#f8fafc';
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(0, -18 + bob, 13, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Red Ninja Headband + flying tails
-      ctx.fillStyle = '#ef4444';
-      ctx.fillRect(-13, -24 + bob, 26, 5.5);
-
-      const tailWave = Math.sin(now * 0.015) * 3;
-      ctx.beginPath();
-      ctx.moveTo(-13 * player.facing, -21 + bob);
-      ctx.lineTo(-27 * player.facing, -24 + bob + tailWave);
-      ctx.lineTo(-25 * player.facing, -18 + bob + tailWave);
-      ctx.closePath();
-      ctx.fill();
-
-      // Cartoon eyes
-      ctx.fillStyle = '#0f172a';
-      ctx.beginPath();
-      ctx.arc(-4.5, -16 + bob, 2, 0, Math.PI * 2);
-      ctx.arc(4.5, -16 + bob, 2, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
-    }
-
-    // Draw Enemy Cartoon Stickman (matching video's colorful outlined stickmen with funny faces)
-    function drawEnemyStickman(ent, now) {
-      ctx.save();
-      ctx.translate(ent.x, ent.y);
-
-      const s = ent.style;
-      const legSwing = Math.sin(now * 0.012 + ent.wobblePhase) * 5;
-
-      // Colored outer glow outline + inner white stick body
-      function strokeStick(color, lw) {
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lw;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        // Torso
-        ctx.beginPath();
-        ctx.moveTo(0, -4);
-        ctx.lineTo(0, 14);
-        ctx.stroke();
-
-        // Legs
-        ctx.beginPath();
-        ctx.moveTo(0, 14);
-        ctx.lineTo(-9 + legSwing, 28);
-        ctx.moveTo(0, 14);
-        ctx.lineTo(9 - legSwing, 28);
-        ctx.stroke();
-
-        // Arms
-        ctx.beginPath();
-        ctx.moveTo(-13, 2 - legSwing * 0.5);
-        ctx.lineTo(0, 1);
-        ctx.lineTo(13, 2 + legSwing * 0.5);
-        ctx.stroke();
-      }
-
-      strokeStick(s.outline, 7);
-      strokeStick('#ffffff', 3.2);
-
-      // Head
-      ctx.fillStyle = s.skin;
-      ctx.strokeStyle = s.outline;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(0, -16, 13, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Headband
-      ctx.fillStyle = s.band;
-      ctx.fillRect(-12, -23, 24, 4.5);
-
-      // Funny cartoon glasses / face
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth = 1.8;
-      ctx.strokeRect(-8, -18, 6.5, 5);
-      ctx.strokeRect(1.5, -18, 6.5, 5);
-      ctx.beginPath();
-      ctx.moveTo(-1.5, -15.5);
-      ctx.lineTo(1.5, -15.5);
-      ctx.stroke();
-
-      // Pupils
-      ctx.fillStyle = '#0f172a';
-      ctx.beginPath();
-      ctx.arc(-4.8, -15.5, 1.3, 0, Math.PI * 2);
-      ctx.arc(4.8, -15.5, 1.3, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Smirk / mouth
-      ctx.beginPath();
-      ctx.arc(0, -10.5, 4, 0.1 * Math.PI, 0.9 * Math.PI);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    function drawBomb(ent, now) {
-      ctx.save();
-      ctx.translate(ent.x, ent.y);
-
-      // Fuse
-      ctx.strokeStyle = '#e7e5e4';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0, -20);
-      ctx.quadraticCurveTo(8, -30, 13, -26);
-      ctx.stroke();
-
-      // Spark
-      ctx.fillStyle = '#facc15';
-      ctx.beginPath();
-      ctx.arc(13, -26, 4.5 + Math.sin(now * 0.03) * 1.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Bomb circle
-      ctx.fillStyle = '#18181b';
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(0, 0, 21, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Red X
-      ctx.strokeStyle = '#f87171';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(-7, -7);
-      ctx.lineTo(7, 7);
-      ctx.moveTo(7, -7);
-      ctx.lineTo(-7, 7);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    function drawSlicedParts() {
-      for (const p of slicedStickParts) {
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, p.alpha);
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-
-        if (p.kind === 'head') {
-          ctx.fillStyle = p.style.skin;
-          ctx.strokeStyle = p.style.outline;
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.arc(0, 0, 12, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.fillStyle = p.style.band;
-          ctx.fillRect(-11, -6, 22, 4);
-        } else {
-          ctx.strokeStyle = p.color;
-          ctx.lineWidth = 4.5;
-          ctx.lineCap = 'round';
-          ctx.beginPath();
-          ctx.moveTo(-11, 0);
-          ctx.lineTo(11, 0);
-          ctx.stroke();
-        }
-        ctx.restore();
-      }
-    }
-
-    function drawFloatingTexts() {
-      for (const ft of floatingTexts) {
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, ft.alpha);
-        ctx.font = '900 22px Bangers, cursive';
-        ctx.textAlign = 'center';
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#1c0d06';
-        ctx.strokeText(ft.text, ft.x, ft.y);
-        ctx.fillStyle = '#fb923c';
-        ctx.fillText(ft.text, ft.x, ft.y);
-
-        ctx.font = '800 14px Inter, sans-serif';
-        ctx.strokeText(ft.sub, ft.x, ft.y + 18);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(ft.sub, ft.x, ft.y + 18);
-        ctx.restore();
-      }
-    }
-
-    function drawBladeTrail(now) {
-      while (trailPoints.length > 0 && now - trailPoints[0].t > 125) {
-        trailPoints.shift();
-      }
-      if (trailPoints.length < 2) return;
-
-      ctx.save();
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      for (let i = 1; i < trailPoints.length; i++) {
-        const p0 = trailPoints[i - 1];
-        const p1 = trailPoints[i];
-        const ratio = i / trailPoints.length;
-        ctx.strokeStyle = `rgba(255, 255, 255, ${ratio * 0.92})`;
-        ctx.lineWidth = Math.max(2, ratio * 9);
-        ctx.beginPath();
-        ctx.moveTo(p0.x, p0.y);
-        ctx.lineTo(p1.x, p1.y);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    let lastTime = performance.now();
-
-    function loop(now) {
-      const dt = Math.min((now - lastTime) / 1000, 0.05);
-      lastTime = now;
-
-      // Update petals
-      for (const p of petals) {
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        p.rot += p.vRot * dt;
-        if (p.y > height + 10) {
-          p.y = -10;
-          p.x = Math.random() * width;
-        }
-      }
-
-      ctx.save();
-      if (screenShake > 0.2) {
-        const sx = (Math.random() - 0.5) * screenShake;
-        const sy = (Math.random() - 0.5) * screenShake;
-        ctx.translate(sx, sy);
-        screenShake *= 0.86;
+      if (state.gaaliMode) {
+        gaaliEmoji.textContent = '😈';
+        gaaliStatusText.textContent = 'GAALI: ON';
+        gaaliToggleBtn.className = "pointer-events-auto btn-3d bg-gradient-to-r from-pink-600 via-rose-600 to-red-600 hover:from-pink-500 hover:to-red-500 text-white font-black px-5 py-2.5 rounded-2xl shadow-[0_4px_0_#881337,0_0_20px_rgba(244,63,94,0.5)] border border-pink-300/40 text-sm sm:text-base tracking-wide flex items-center gap-2 cursor-pointer";
       } else {
-        screenShake = 0;
+        gaaliEmoji.textContent = '😇';
+        gaaliStatusText.textContent = 'GAALI: OFF';
+        gaaliToggleBtn.className = "pointer-events-auto btn-3d bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-black px-5 py-2.5 rounded-2xl shadow-[0_4px_0_#065f46,0_0_20px_rgba(16,185,129,0.45)] border border-emerald-300/40 text-sm sm:text-base tracking-wide flex items-center gap-2 cursor-pointer";
       }
+    });
 
-      drawDojoBackground(now);
-
-      if (gameState === 'playing') {
-        // Smoothly move hero stickman ninja toward swipe
-        player.x += (player.targetX - player.x) * Math.min(1, dt * 14);
-        player.y += (player.targetY - player.y) * Math.min(1, dt * 14);
-        if (player.slashAnim > 0) {
-          player.slashAnim = Math.max(0, player.slashAnim - dt * 5.5);
-        }
-
-        spawnTimer -= dt;
-        if (spawnTimer <= 0) {
-          spawnEnemyWave();
-          const minInterval = 0.55;
-          const baseInterval = Math.max(minInterval, 1.25 - score * 0.008);
-          spawnTimer = baseInterval * (0.75 + Math.random() * 0.45);
-        }
-
-        for (let i = enemies.length - 1; i >= 0; i--) {
-          const ent = enemies[i];
-          ent.x += ent.vx * dt;
-          ent.y += ent.vy * dt;
-
-          // Keep within horizontal walls
-          if (ent.x < 36) {
-            ent.x = 36;
-            ent.vx = Math.abs(ent.vx);
-          } else if (ent.x > width - 36) {
-            ent.x = width - 36;
-            ent.vx = -Math.abs(ent.vx);
-          }
-
-          if (ent.type === 'bomb') {
-            drawBomb(ent, now);
-          } else {
-            drawEnemyStickman(ent, now);
-          }
-
-          // Enemy reaches bottom -> lose a heart
-          if (ent.y > height + 32) {
-            enemies.splice(i, 1);
-            if (ent.type === 'enemy' && gameState === 'playing') {
-              lives -= 1;
-              screenShake = 10;
-              updateHud();
-              if (lives <= 0) {
-                endGame();
-              }
-            }
-          }
-        }
+    sfxToggleBtn.addEventListener('click', () => {
+      state.sfxEnabled = !state.sfxEnabled;
+      if (!state.sfxEnabled) {
+        stopAllMappedAudio();
+      } else {
+        unlockWebAudio();
       }
+      sfxIcon.textContent = state.sfxEnabled ? '🔊' : '🔇';
+      sfxLabel.textContent = state.sfxEnabled ? 'SOUND ON' : 'SOUND OFF';
+    });
 
-      // Update & draw sliced stickman parts
-      for (let i = slicedStickParts.length - 1; i >= 0; i--) {
-        const p = slicedStickParts[i];
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        p.vy += 680 * dt;
-        p.rot += p.vRot * dt;
-        p.alpha -= dt * 1.35;
-        if (p.alpha <= 0) {
-          slicedStickParts.splice(i, 1);
-        }
-      }
-      drawSlicedParts();
-
-      // Update & draw floating comic words ("THOK!", "POOT!", "+3")
-      for (let i = floatingTexts.length - 1; i >= 0; i--) {
-        const ft = floatingTexts[i];
-        ft.y += ft.vy * dt;
-        ft.alpha -= dt * 1.4;
-        if (ft.alpha <= 0) {
-          floatingTexts.splice(i, 1);
-        }
-      }
-      drawFloatingTexts();
-
-      if (gameState === 'playing') {
-        drawHeroNinja(now);
-      }
-
-      drawBladeTrail(now);
-
-      if (flashAlpha > 0.01) {
-        ctx.fillStyle = `rgba(239, 68, 68, ${flashAlpha})`;
-        ctx.fillRect(0, 0, width, height);
-        flashAlpha *= 0.88;
-      }
-
-      ctx.restore();
-      requestAnimationFrame(loop);
-    }
-
-    requestAnimationFrame(loop);
+    window.onload = function () {
+      updateHUD();
+      lastFrameTime = performance.now();
+      requestAnimationFrame(gameLoop);
+    };
   </script>
 </body>
 </html>
